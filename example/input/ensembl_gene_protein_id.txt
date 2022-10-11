@@ -1,0 +1,2 @@
+Gene.stable.ID	Protein.stable.ID	Transcript.stable.ID	Gene.name	depth
+ENSG00000147889	ENSP00000307101	ENST00000304494	CDKN2A	83

@@ -19,15 +19,8 @@ import esm
 import scipy
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.decomposition import PCA
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from sklearn.svm import SVC, SVR
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import LogisticRegression, SGDRegressor, LinearRegression
-from sklearn.linear_model import ElasticNet
-from sklearn.ensemble import GradientBoostingRegressor
 
-# from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import ElasticNet
 from sklearn.metrics import mean_squared_error, r2_score
 
 from sklearn.metrics import roc_curve, auc
@@ -71,13 +64,9 @@ def create_parser():
     return parser
 
 
-
 parser = create_parser()
 args = parser.parse_args()
 
-# load AAIndex, O and U are not available
-# aaindex = pd.read_csv("/share/terra/Users/xf2193/resource/AAIndex/AAIndex_imputed.txt",sep='\t',header=0)
-# aaindex = aaindex.to_dict('list')
 
 INPUT_PATH = args.input_csv
 esm1b_PATH = args.esm1b_dir # Path to directory of embeddings for fasta
@@ -127,14 +116,7 @@ def dataset(INPUT_PATH,esm1b_PATH,msa_PATH):
             ids.append(idx)
             continue
         msa = msa[pos_msa,]
-# AAIndex
-#        if a in aaindex:
-#            b = aaindex[a]
-#            b = torch.tensor(b)
-#        else:
-#            print(line)
-#            b = torch.zeros(544) # 544 features
-# combine features
+# concatenation
         embs = torch.cat((esm1b,msa))
 #        embs = torch.cat((embs,b))
         Xs.append(embs)
@@ -158,28 +140,26 @@ Xs_test, ys_test = dataset(INPUT_PATH,esm1b_PATH,msa_PATH)
 n = Xs_train.shape[1]
 ys_train = ys_train[:,1].astype(int)
 
-num = 60
+num = 100
 pca = PCA(num)
 Xs_train_pca = pca.fit_transform(Xs_train)
-# evaluation
+
+# test dataset
 Xs_test_pca = pca.transform(Xs_test)
 
 #   ML model
-# reg = GradientBoostingRegressor()
-reg = ElasticNet(alpha=0.5,l1_ratio=0.1)
+reg = ElasticNet(alpha=1,l1_ratio=0.1)
 model = reg.fit(Xs_train_pca, ys_train)
 preds = model.predict(Xs_test_pca)
-# score = reg.score(Xs_train_pca, ys_train)
-print(reg.sparse_coef_)
-# print(score)
 
-
+# maximum
 preds = np.append(ys_test,preds.reshape(-1,1),axis=1)
 preds = pd.DataFrame(preds,columns = ['ID','Label','ESM-MSA'])
 preds["Label"] = pd.to_numeric(preds["Label"])
 preds["ESM-MSA"] = pd.to_numeric(preds["ESM-MSA"])
 preds = preds.groupby('ID').max()
 
+# evaluation
 fpr, tpr, _ = roc_curve(preds["Label"], preds["ESM-MSA"])
 roc_auc = auc(fpr, tpr)
 print(roc_auc)

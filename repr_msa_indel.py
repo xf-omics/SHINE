@@ -151,7 +151,7 @@ def main(args):
             # See https://github.com/pytorch/pytorch/issues/1995
                     
                 result["representations"] = {
-                    layer: t[0, 0, 1 : toks.size()[2]].clone()
+                    layer: t[0, 0, 0 : toks.size()[2]].clone()
                     for layer, t in representations.items()
                 }
 
