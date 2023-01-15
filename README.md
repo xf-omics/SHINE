@@ -54,5 +54,4 @@ python variant_prediction_esm1b_msa_ins.py training_variants testing_variants pr
 
 # 4. Predictions of deletions
 We provide SHINE prediction scores for all possible single amino acid deletions in human genes:
-https://www.dropbox.com/s/tc12faehbl6rv7g/SHINE_deletion_scores.tar.gz?dl=0
-
+https://www.dropbox.com/s/el38y6nkdrnhn56/SHINE_deletion_scores.tar.gz?dl=0
